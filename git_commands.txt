@@ -1,0 +1,28 @@
+To make a new branch
+git checkout -b branchName
+
+To switch to an already existing branch
+git branch branchName
+
+To pull code from remote to local
+git pull
+
+After making changes to the local code
+
+Add changes to commit
+git add -A
+
+Verify commit
+git commit -m "Message here"
+
+to push form local to remote
+git push
+
+if you need to revert to an older commit
+git log
+-find the commit hash that you want to revert to
+git revert hashnumber
+
+to clone a remote repository
+git clone url
+
