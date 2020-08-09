@@ -52,15 +52,15 @@ def main():
    # parser = argparse.ArgumentParser()
     parser.add_argument('--filename', '-f', default='recording.wav')
     args = parser.parse_args()
-    talk = True
+
 
     with Board() as board:
         assistant = AssistantServiceClientWithLed(board=board,
                                                   volume_percentage=args.volume,
                                                   language_code=args.language)
         #done=threading.Event()
-	
-        while talk:#True:
+        talk=True
+        while True:
           #  logging.info('Press button to start conversation...')
 #            board.button.wait_for_press()
 #            done = threading.Event()
@@ -81,8 +81,11 @@ def main():
               #  leds.update(Leds.rgb_pattern(Color.GREEN))
                # time.sleep(5)
             logging.info('Conversation started!')
+            #assistant.conversation2()
             if not assistant.conversation2():
-                board.button.wait_for_press()
+                if assistant.Listner():
+                    continue
+      
                 #play_wav(args.filename)
                 #leds.update(Leds.rgb_pattern(Color.RED))
                 #time.sleep(5)
