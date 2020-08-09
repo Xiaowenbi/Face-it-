@@ -59,6 +59,8 @@ from aiy.board import Board
 
 logger = logging.getLogger(__name__)
 
+
+
 ASSISTANT_API_ENDPOINT = 'embeddedassistant.googleapis.com'
 END_OF_UTTERANCE = embedded_assistant_pb2.AssistResponse.END_OF_UTTERANCE
 DIALOG_FOLLOW_ON = embedded_assistant_pb2.DialogStateOut.DIALOG_FOLLOW_ON
@@ -211,29 +213,156 @@ class AssistantServiceClient:
 
         return continue_conversation
 
+    def conversation(self, deadline=DEFAULT_GRPC_DEADLINE):
+        """
+        Starts a conversation with the Google Assistant.
 
+        The device begins listening for your query or command and will wait indefinitely.
+        Once it completes a query/command, it returns to listening for another.
 
+        Args:
+            deadline: The amount of time (in milliseconds) to wait for each gRPC request to
+                complete before terminating.
+        """
+        keep_talking = True
+        while keep_talking:
+            playing = False
+            with Recorder() as recorder, BytesPlayer() as player:
+                play = player.play(AUDIO_FORMAT)
 
-    def _assist_2(self, recorder, play, deadline):
+                def wrapped_play(data):
+                    nonlocal playing
+                    if not playing:
+                        self._playing_started()
+                        playing = True
+                    play(data)
+
+                try:
+                    keep_talking = self._assist(recorder, wrapped_play, deadline)
+                finally:
+                    play(None)       # Signal end of sound stream.
+                    recorder.done()  # Signal stop recording.
+
+            if playing:
+                self._playing_stopped()
+
+    def Listner(self,deadline=DEFAULT_GRPC_DEADLINE):
+        """
+        Starts a conversation with the Google Assistant.
+
+        The device begins listening for your query or command and will wait indefinitely.
+        Once it completes a query/command, it returns to listening for another.
+
+        Args:
+            deadline: The amount of time (in milliseconds) to wait for each gRPC request to
+                complete before terminating.
+        """
+        keep_talking = True
+        while keep_talking:
+            playing = False           
+            with Recorder() as recorder, BytesPlayer() as player:
+                play = player.play(AUDIO_FORMAT)
+                def wrapped_play(data):
+                    nonlocal playing
+                    if not playing:
+                        self._playing_started()
+                        playing = True
+                    play(data)
+
+                try:
+                    logger.info("FINALLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY YO SHIT")
+                    keep_talking = self._listen(recorder, wrapped_play, deadline)
+                finally:
+                    play(None)       # Signal end of sound stream.
+                    recorder.done()  # Signal stop recording.
+
+            if playing:
+                self._playing_stopped()
+        return keep_talking
+
+    def _listen(self, recorder,play, deadline):
         continue_conversation = False
+        
         for response in self._assistant.Assist(self._requests(recorder), deadline):
             if response.event_type == END_OF_UTTERANCE:
                 logger.info('End of audio request detected.')
                 recorder.done()
-
+            
             # Process 'speech_results'.
             if response.speech_results:
                 result = ' '.join(r.transcript for r in response.speech_results)
                 logger.info('You said assist2: "%s".',
                             result)
                 result = result.lower()
-                flag = ('candy' in result.lower())
-                if flag:
+                if ('candy' in result.lower()):
+                            logger.info("WE can start recording now yo fuck")
+                            self.record_candy()
+                            return True
+                #flag = ('candy' in result.lower())
+                if ('hey google' in result.lower()):
+                   #logger.info("WE can start recording now yo fuck")
+                    return False
+             
+
+            # Process 'audio_out'.
+            if response.audio_out.audio_data:
+                recorder.done()  # Just in case.
+                #play(_normalize_audio_buffer(response.audio_out.audio_data,
+                 #                            self._volume_percentage))
+
+            # Process 'dialog_state_out'.
+            if response.dialog_state_out.conversation_state:
+                conversation_state = response.dialog_state_out.conversation_state
+                logger.debug('Updating conversation state.')
+                self._conversation_state = conversation_state  # Mutable state change.
+
+            volume_percentage = response.dialog_state_out.volume_percentage
+            if volume_percentage:
+                logger.info('Setting volume to %s%%', volume_percentage)
+                self._volume_percentage = volume_percentage  # Mutable state change.
+
+            supplemental_display_text = response.dialog_state_out.supplemental_display_text
+            if supplemental_display_text:
+                logger.info('Assistant said: "%s"', supplemental_display_text)
+
+            microphone_mode = response.dialog_state_out.microphone_mode
+            if microphone_mode == DIALOG_FOLLOW_ON:
+                continue_conversation = True
+                logger.info('Expecting follow-on query from user.')
+            elif microphone_mode == CLOSE_MICROPHONE:
+                continue_conversation = False
+                logger.info('Not expecting follow-on query from user.')
+
+        return True
+
+
+    def _assist_2(self,recorder, play, deadline):
+        continue_conversation = False
+        
+        for response in self._assistant.Assist(self._requests(recorder), deadline):
+            if response.event_type == END_OF_UTTERANCE:
+                logger.info('End of audio request detected.')
+                recorder.done()
+            
+            # Process 'speech_results'.
+            if response.speech_results:
+                result = ' '.join(r.transcript for r in response.speech_results)
+                logger.info('You said assist2: "%s".',
+                            result)
+                result = result.lower()
+                #flag = ('candy' in result.lower())
+                #if ('candy' in result.lower()):
+                   #logger.info("WE can start recording now yo fuck")
+                    #return False
+                if ('candy' in result.lower()):
+                    logger.info("WE can start recording now yo fuck")
+                    self.record_candy()
+                    return True
+                if ('shut up' in result.lower()):
+                    logger.info("google will be shut up")
                     return False
 
-
-            #    if r.transcript=="memory" for r in response.speech_results
-
+                
 
 
             # Process 'audio_out'.
@@ -268,6 +397,7 @@ class AssistantServiceClient:
         return True
 
     def record_candy(self):
+
         parser = argparse.ArgumentParser()
         parser.add_argument('--filename', '-f', default='recording.wav')
         args = parser.parse_args()
@@ -287,7 +417,7 @@ class AssistantServiceClient:
             #       time.sleep(0.5)
 
         def wait():
-            time.sleep(3)
+            time.sleep(7)
 
         record_file(AudioFormat.CD, filename=args.filename, wait=wait, filetype='wav')
             #print('Press button to play recorded sound.')
@@ -296,8 +426,9 @@ class AssistantServiceClient:
         print('Playing...')
         play_wav(args.filename)
         print('Done.')
+        return False
 
-    def conversation2(self, deadline=DEFAULT_GRPC_DEADLINE):
+    def conversation2(self,deadline=DEFAULT_GRPC_DEADLINE):
         """
         Starts a conversation with the Google Assistant.
 
@@ -310,10 +441,9 @@ class AssistantServiceClient:
         """
         keep_talking = True
         while keep_talking:
-            playing = False
+            playing = False           
             with Recorder() as recorder, BytesPlayer() as player:
                 play = player.play(AUDIO_FORMAT)
-
                 def wrapped_play(data):
                     nonlocal playing
                     if not playing:
@@ -325,13 +455,14 @@ class AssistantServiceClient:
                     logger.info("FINALLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY YO SHIT")
                     keep_talking = self._assist_2(recorder, wrapped_play, deadline)
                 finally:
-                    #play(None)       # Signal end of sound stream.
+                    play(None)       # Signal end of sound stream.
                     recorder.done()  # Signal stop recording.
 
             if playing:
                 self._playing_stopped()
-        logger.info("WE can start recording now yo fuck")
-        self.record_candy()
+        #logger.info("WE can start recording now yo fuck")
+        #self.record_candy()
+        #return False
 
 
 
