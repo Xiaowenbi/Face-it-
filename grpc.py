@@ -308,7 +308,7 @@ class AssistantServiceClient:
                     self.play_birthday()
                     return True
                 if ('fairest of us all' in result.lower()):
-                    tts.say("vivian, is the fairest in the world")
+                    tts.say("teddy bear, is the fairest in the world")
                     return False
                 if ('hey google' in result.lower()):
                     return False
@@ -383,7 +383,7 @@ class AssistantServiceClient:
                     self.play_candy()
                     return True
                 if ('fairest of us all' in result.lower()):
-                    tts.say("vivian, is the fairest in the world")
+                    tts.say("teddy bear, is the fairest in the world")
                     return True
                 
 
