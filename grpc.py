@@ -50,6 +50,7 @@ from google.assistant.embedded.v1alpha2 import embedded_assistant_pb2_grpc
 from aiy.assistant import auth_helpers, device_helpers
 from aiy.board import Led
 from aiy.voice.audio import AudioFormat, Recorder, BytesPlayer, record_file, play_wav
+import aiy.voice.tts as tts
 
 import argparse
 import time
@@ -281,6 +282,7 @@ class AssistantServiceClient:
         return keep_talking
 
     def _listen(self, recorder,play, deadline):
+        # mic is mute, but conversation continue
         continue_conversation = False
         
         for response in self._assistant.Assist(self._requests(recorder), deadline):
@@ -294,18 +296,23 @@ class AssistantServiceClient:
                 logger.info('You said assist2: "%s".',
                             result)
                 result = result.lower()
-                if ('birthday song' in result.lower()):
-                    logger.info("WE can start recording now")
+                if ('chicken feet' in result.lower()):
+                    logger.info("WE can start recording")
                     self.record_candy()
                     return True
-                if ('birthday gift' in result.lower()):
-                    self.play_candy()
+                if ('birthday song' in result.lower()):
+                    logger.info("WE can start recording now")
+                    self.record_birthday()
                     return True
-                #flag = ('candy' in result.lower())
-                if ('hey google' in result.lower()):
-                   #logger.info("WE can start recording")
+                if ('birthday gift' in result.lower()):
+                    self.play_birthday()
+                    return True
+                if ('fairest of us all' in result.lower()):
+                    tts.say("vivian, is the fairest in the world")
                     return False
-             
+                if ('hey google' in result.lower()):
+                    return False
+
 
             # Process 'audio_out'.
             if response.audio_out.audio_data:
@@ -341,7 +348,7 @@ class AssistantServiceClient:
 
     def _assist_2(self,recorder, play, deadline):
         continue_conversation = False
-        
+
         for response in self._assistant.Assist(self._requests(recorder), deadline):
             if response.event_type == END_OF_UTTERANCE:
                 logger.info('End of audio request detected.')
@@ -353,20 +360,31 @@ class AssistantServiceClient:
                 logger.info('You said assist2: "%s".',
                             result)
                 result = result.lower()
-                #flag = ('candy' in result.lower())
-                #if ('candy' in result.lower()):
-                   #logger.info("WE can start recording")
-                    #return False
-                #if ('candy' in result.lower()):
-                    #logger.info("WE can start recording")
-                    #self.record_candy()
-                    #return True
+                if ('chicken feet' in result.lower()):
+                    logger.info("WE can start recording")
+                    self.record_candy()
+                    return True
+                if ('birthday gift' in result.lower()):
+                    self.play_birthday()
+                    return True
                 if ('everybody ready' in result.lower()):
                     logger.info("google will be shut up")
                     return False
                 if('shut up' in result.lower()):
                     logger.info("shup up")
                     return False
+                if('question prepare' in result.lower()):
+                    logger.info("prepared")
+                    play(_normalize_audio_buffer(response.audio_out.audio_data,
+                                            self._volume_percentage))
+                    return False
+                if('play memory' in result.lower()):
+                    logger.info("play record")
+                    self.play_candy()
+                    return True
+                if ('fairest of us all' in result.lower()):
+                    tts.say("vivian, is the fairest in the world")
+                    return True
                 
 
 
@@ -402,51 +420,43 @@ class AssistantServiceClient:
         return True
 
     def record_candy(self):
-
+        #record scene: refusing to eat durian
         parser = argparse.ArgumentParser()
         parser.add_argument('--filename', '-f', default='recording.wav')
         args = parser.parse_args()
-
-        # with Board() as board:
-            #    print('Press button to start recording.')
-            #   board.button.wait_for_press()
-
-            # done = threading.Event()
-                #board.button.when_pressed = done.set
-
-                #def wait():
-                #   start = time.m<onotonic()
-                #   while not done.is_set():
-                #       duration = time.monotonic() - start
-                #       print('Recording: %.02f seconds [Press button to stop]' % duration)
-                #       time.sleep(0.5)
-
         def wait():
             time.sleep(7)
-
         record_file(AudioFormat.CD, filename=args.filename, wait=wait, filetype='wav')
-                #print('Press button to play recorded sound.')
-                   #board.button.wait_for_press()
 
-            #print('Playing...')
-                #play_wav(args.filename)
-        #print('Done.')
-        return False
+    def record_birthday(self):
+        #start to record singing of birthday-song
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--filename_2', '-f', default='birthday.wav')
+        args = parser.parse_args()
+        def wait():
+            time.sleep(23)
+        record_file(AudioFormat.CD, filename=args.filename_2, wait=wait, filetype='wav')
 
     def play_candy(self):
-
+        # play .wav of recording scene: refusing to eat durian
         parser = argparse.ArgumentParser()
         parser.add_argument('--filename', '-f', default='recording.wav')
         args = parser.parse_args()
         print('Playing...')
-        #with BytesPlayer() as player:
-            #play = player.play(AUDIO_FORMAT)
-        play_wav(args.filename)
-
-            #play(_normalize_audio_buffer(args.filename,
-                                             #self._volume_percentage))
+        play_wav(args.filename)        
         print('Done.')
 
+
+    def play_birthday(self):
+        # play .wav of birthday song
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--filename2', '-f', default='birthday.wav')
+        args = parser.parse_args()
+        print('Playing...')
+        play_wav(args.filename2)        
+        print('Done.')
+
+    
 
     def conversation2(self,deadline=DEFAULT_GRPC_DEADLINE):
         """
@@ -480,10 +490,6 @@ class AssistantServiceClient:
 
             if playing:
                 self._playing_stopped()
-        #logger.info("WE can start recording now ")
-        #self.record_candy()
-        #return False
-
 
 
 
