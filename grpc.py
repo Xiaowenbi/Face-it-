@@ -295,7 +295,7 @@ class AssistantServiceClient:
                             result)
                 result = result.lower()
                 if ('birthday song' in result.lower()):
-                    logger.info("WE can start recording now yo fuck")
+                    logger.info("WE can start recording now")
                     self.record_candy()
                     return True
                 if ('birthday gift' in result.lower()):
@@ -303,7 +303,7 @@ class AssistantServiceClient:
                     return True
                 #flag = ('candy' in result.lower())
                 if ('hey google' in result.lower()):
-                   #logger.info("WE can start recording now yo fuck")
+                   #logger.info("WE can start recording")
                     return False
              
 
@@ -355,10 +355,10 @@ class AssistantServiceClient:
                 result = result.lower()
                 #flag = ('candy' in result.lower())
                 #if ('candy' in result.lower()):
-                   #logger.info("WE can start recording now yo fuck")
+                   #logger.info("WE can start recording")
                     #return False
                 #if ('candy' in result.lower()):
-                    #logger.info("WE can start recording now yo fuck")
+                    #logger.info("WE can start recording")
                     #self.record_candy()
                     #return True
                 if ('everybody ready' in result.lower()):
@@ -439,12 +439,13 @@ class AssistantServiceClient:
         parser.add_argument('--filename', '-f', default='recording.wav')
         args = parser.parse_args()
         print('Playing...')
-        with BytesPlayer() as player:
-            play = player.play(AUDIO_FORMAT)
-        #play_wav(args.filename)
-            play(_normalize_audio_buffer(args.filename,
-                                             self._volume_percentage))
-            print('Done.')
+        #with BytesPlayer() as player:
+            #play = player.play(AUDIO_FORMAT)
+        play_wav(args.filename)
+
+            #play(_normalize_audio_buffer(args.filename,
+                                             #self._volume_percentage))
+        print('Done.')
 
 
     def conversation2(self,deadline=DEFAULT_GRPC_DEADLINE):
@@ -479,7 +480,7 @@ class AssistantServiceClient:
 
             if playing:
                 self._playing_stopped()
-        #logger.info("WE can start recording now yo fuck")
+        #logger.info("WE can start recording now ")
         #self.record_candy()
         #return False
 
