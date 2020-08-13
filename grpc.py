@@ -182,6 +182,7 @@ class AssistantServiceClient:
             if response.speech_results:
                 logger.info('You said: "%s".',
                             ' '.join(r.transcript for r in response.speech_results))
+
             # Process 'audio_out'.
             if response.audio_out.audio_data:
                 recorder.done()  # Just in case.
@@ -197,7 +198,6 @@ class AssistantServiceClient:
             volume_percentage = response.dialog_state_out.volume_percentage
             if volume_percentage:
                 logger.info('Setting volume to %s%%', volume_percentage)
-                self._volume_percentage = volume_percentage  # Mutable state change.
 
             supplemental_display_text = response.dialog_state_out.supplemental_display_text
             if supplemental_display_text:
@@ -270,7 +270,7 @@ class AssistantServiceClient:
                     play(data)
 
                 try:
-                    logger.info("FINALLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY YO SHIT")
+                    logger.info("FINALLY")
                     keep_talking = self._listen(recorder, wrapped_play, deadline)
                 finally:
                     play(None)       # Signal end of sound stream.
@@ -294,10 +294,13 @@ class AssistantServiceClient:
                 logger.info('You said assist2: "%s".',
                             result)
                 result = result.lower()
-                if ('candy' in result.lower()):
-                            logger.info("WE can start recording now yo fuck")
-                            self.record_candy()
-                            return True
+                if ('birthday song' in result.lower()):
+                    logger.info("WE can start recording now yo fuck")
+                    self.record_candy()
+                    return True
+                if ('birthday gift' in result.lower()):
+                    self.play_candy()
+                    return True
                 #flag = ('candy' in result.lower())
                 if ('hey google' in result.lower()):
                    #logger.info("WE can start recording now yo fuck")
@@ -354,14 +357,16 @@ class AssistantServiceClient:
                 #if ('candy' in result.lower()):
                    #logger.info("WE can start recording now yo fuck")
                     #return False
-                if ('candy' in result.lower()):
-                    logger.info("WE can start recording now yo fuck")
-                    self.record_candy()
-                    return True
-                if ('shut up' in result.lower()):
+                #if ('candy' in result.lower()):
+                    #logger.info("WE can start recording now yo fuck")
+                    #self.record_candy()
+                    #return True
+                if ('everybody ready' in result.lower()):
                     logger.info("google will be shut up")
                     return False
-
+                if('shut up' in result.lower()):
+                    logger.info("shup up")
+                    return False
                 
 
 
@@ -402,31 +407,45 @@ class AssistantServiceClient:
         parser.add_argument('--filename', '-f', default='recording.wav')
         args = parser.parse_args()
 
-    # with Board() as board:
-        #    print('Press button to start recording.')
-        #   board.button.wait_for_press()
+        # with Board() as board:
+            #    print('Press button to start recording.')
+            #   board.button.wait_for_press()
 
-        # done = threading.Event()
-            #board.button.when_pressed = done.set
+            # done = threading.Event()
+                #board.button.when_pressed = done.set
 
-            #def wait():
-            #   start = time.m<onotonic()
-            #   while not done.is_set():
-            #       duration = time.monotonic() - start
-            #       print('Recording: %.02f seconds [Press button to stop]' % duration)
-            #       time.sleep(0.5)
+                #def wait():
+                #   start = time.m<onotonic()
+                #   while not done.is_set():
+                #       duration = time.monotonic() - start
+                #       print('Recording: %.02f seconds [Press button to stop]' % duration)
+                #       time.sleep(0.5)
 
         def wait():
             time.sleep(7)
 
         record_file(AudioFormat.CD, filename=args.filename, wait=wait, filetype='wav')
-            #print('Press button to play recorded sound.')
-            #board.button.wait_for_press()
+                #print('Press button to play recorded sound.')
+                   #board.button.wait_for_press()
 
-        print('Playing...')
-        play_wav(args.filename)
-        print('Done.')
+            #print('Playing...')
+                #play_wav(args.filename)
+        #print('Done.')
         return False
+
+    def play_candy(self):
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--filename', '-f', default='recording.wav')
+        args = parser.parse_args()
+        print('Playing...')
+        with BytesPlayer() as player:
+            play = player.play(AUDIO_FORMAT)
+        #play_wav(args.filename)
+            play(_normalize_audio_buffer(args.filename,
+                                             self._volume_percentage))
+            print('Done.')
+
 
     def conversation2(self,deadline=DEFAULT_GRPC_DEADLINE):
         """
@@ -452,7 +471,7 @@ class AssistantServiceClient:
                     play(data)
 
                 try:
-                    logger.info("FINALLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY YO SHIT")
+                    logger.info("FINALLY")
                     keep_talking = self._assist_2(recorder, wrapped_play, deadline)
                 finally:
                     play(None)       # Signal end of sound stream.
