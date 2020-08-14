@@ -313,20 +313,18 @@ class AssistantServiceClient:
                 if ('hey google' in result.lower()):
                     return False
 
-
             # Process 'audio_out'.
             if response.audio_out.audio_data:
                 recorder.done()  # Just in case.
                 #play(_normalize_audio_buffer(response.audio_out.audio_data,
                  #                            self._volume_percentage))
-
             # Process 'dialog_state_out'.
             if response.dialog_state_out.conversation_state:
                 conversation_state = response.dialog_state_out.conversation_state
                 logger.debug('Updating conversation state.')
                 self._conversation_state = conversation_state  # Mutable state change.
-
             volume_percentage = response.dialog_state_out.volume_percentage
+
             if volume_percentage:
                 logger.info('Setting volume to %s%%', volume_percentage)
                 self._volume_percentage = volume_percentage  # Mutable state change.
@@ -373,7 +371,7 @@ class AssistantServiceClient:
                 if('shut up' in result.lower()):
                     logger.info("shup up")
                     return False
-                if('question prepare' in result.lower()):
+                if('next question' in result.lower()):
                     logger.info("prepared")
                     play(_normalize_audio_buffer(response.audio_out.audio_data,
                                             self._volume_percentage))
@@ -384,9 +382,7 @@ class AssistantServiceClient:
                     return True
                 if ('fairest of us all' in result.lower()):
                     tts.say("teddy bear, is the fairest in the world")
-                    return True
-                
-
+                    return True                
 
             # Process 'audio_out'.
             if response.audio_out.audio_data:
