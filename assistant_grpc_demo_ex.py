@@ -61,35 +61,11 @@ def main():
         #done=threading.Event()
         talk=True
         while True:
-          #  logging.info('Press button to start conversation...')
-#            board.button.wait_for_press()
-#            done = threading.Event()
-#            board.button.when_pressed = done.set
-
-            #def wait():
-             #   start = time.monotonic()
-              #  while not done.is_set():
-               #     duration = time.monotonic() - start
-                #    print('Recording: %.02f seconds [Press button to stop]' % duration)
-                 #   time.sleep(0.5)
-
-            #record_file(AudioFormat.CD, filename=args.filename, wait=wait, filetype='wav')
-
-            
-            #with Leds() as leds:
-             #   leds.pattern = Pattern.blink(500)
-              #  leds.update(Leds.rgb_pattern(Color.GREEN))
-               # time.sleep(5)
             logging.info('Conversation started!')
             #assistant.conversation2()
             if not assistant.conversation2():
                 if assistant.Listner():
-                    continue
-      
-                #play_wav(args.filename)
-                #leds.update(Leds.rgb_pattern(Color.RED))
-                #time.sleep(5)
-            
+                    continue            
 
 if __name__ == '__main__':
     main()
